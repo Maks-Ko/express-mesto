@@ -5,7 +5,10 @@ createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then(card => res.send({ data: card }))
-    .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные при создании карточки" });
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 // возвращает все карточки
@@ -19,7 +22,10 @@ getCards = (req, res) => {
 deleteCardId = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then(card => res.send({ data: card }))
-    .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') return res.status(404).send({ "message": "Карточка с указанным _id не найдена" });
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 // поставить лайк карточке
@@ -30,7 +36,10 @@ likesCard = (req, res) => {
     { new: true }
   )
     .then(card => res.send({ data: card }))
-    .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') return res.status(404).send({ "message": "Передан несуществующий _id карточки" });
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 // удалить лайк карточки
@@ -41,7 +50,10 @@ dislikesCard = (req, res) => {
     { new: true },
   )
     .then(card => res.send({ data: card }))
-    .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') return res.status(404).send({ "message": "Передан несуществующий _id карточки" });
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 module.exports = { createCard, getCards, deleteCardId, likesCard, dislikesCard };
