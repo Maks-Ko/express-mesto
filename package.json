@@ -1,10 +1,10 @@
 {
   "name": "mesto-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "server for the mesto website",
   "main": "index.js",
   "scripts": {
-    "lint": "npx eslint",
+    "npx eslint": "npx eslint",
     "start": "node app.js",
     "dev": "nodemon app.js"
   },

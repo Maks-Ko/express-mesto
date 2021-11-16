@@ -6,18 +6,24 @@ createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then(user => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные при создании пользователя" });
-      res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
+      res.status(500).send({ message: 'Ошибка сервера' });
     });
 };
 
 // возвращает пользователя по _id
 getUserId = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ "message": "Пользователь по указанному _id не найден" });
-      res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ "message": "Переданы некорректные данные" });
+      } else if (err.name === 'ReferenceError') {
+        res.status(404).send({ message: 'Объект не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка сервера' });
+      }
     });
 };
 
@@ -25,7 +31,7 @@ getUserId = (req, res) => {
 getUsers = (req, res) => {
   User.find({})
     .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(err => res.status(500).send({ message: 'Ошибка сервера' }));
 };
 
 // обновляет профиль
@@ -36,11 +42,17 @@ updateUser = (req, res) => {
     return res.status(400).send({ "message": "Переданы некорректные данные при обновлении профиля" });
   };
 
-  User.findByIdAndUpdate(req.user._id, { name, about })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+    .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ "message": "Пользователь с указанным _id не найден" });
-      res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ "message": "Переданы некорректные данные" });
+      } else if (err.name === 'ReferenceError') {
+        res.status(404).send({ message: 'Объект не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка сервера' });
+      }
     });
 };
 
@@ -52,11 +64,17 @@ updateAvatar = (req, res) => {
     return res.status(400).send({ "message": "Переданы некорректные данные" });
   };
 
-  User.findByIdAndUpdate(req.user._id, { avatar })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+    .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ "message": "Пользователь с указанным _id не найден" });
-      res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ "message": "Переданы некорректные данные" });
+      } else if (err.name === 'ReferenceError') {
+        res.status(404).send({ message: 'Объект не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка сервера' });
+      }
     });
 };
 

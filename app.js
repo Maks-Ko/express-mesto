@@ -9,8 +9,6 @@ const app = express();
 // подключение к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
-  // useCreateIndex: true,
-  // useFindAndModify: false
 });
 
 app.use(express.json());
