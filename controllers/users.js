@@ -1,8 +1,9 @@
 const User = require('../models/user');
 
-// возвращает всех пользователей
-getUsers = (req, res) => {
-  User.find({})
+// создаёт пользователя
+createUser = (req, res) => {
+  const { name, about, avatar } = req.body;
+  User.create({ name, about, avatar })
     .then(user => res.send({ data: user }))
     .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
 };
@@ -14,10 +15,9 @@ getUserId = (req, res) => {
     .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
-// создаёт пользователя
-createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+// возвращает всех пользователей
+getUsers = (req, res) => {
+  User.find({})
     .then(user => res.send({ data: user }))
     .catch(err => res.status(500).send({ message: 'Произошла ошибка' }));
 };
