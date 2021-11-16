@@ -1,18 +1,9 @@
 const router = require('express').Router();
 
-// возвращает всех пользователей
-router.get('/users', (req, res) => {
-  // res.send(users);
-});
+const { getUsers, getUserId, createUser } = require('../controllers/users');
 
-// возвращает пользователя по _id
-router.get('/users/:userId', (req, res) => {
-  // res.send(req.params);
-});
+router.get('/users', getUsers);
+router.get('/users/:userId', getUserId);
+router.post('/users', createUser);
 
-// создаёт пользователя
-router.post('/users', (req, res) => {
-  //
-});
-
-module.exports = { getUsers, getUserId, createUser };
+module.exports = router;
