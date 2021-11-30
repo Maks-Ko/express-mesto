@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 // создаёт пользователя
 createUser = (req, res) => {
@@ -16,7 +17,9 @@ createUser = (req, res) => {
     }))
     .then((user) => res.status(201).send({ date: user }))
     .catch((err) => {
+      console.log(err.name);
       if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
+      // if (err.name === 'MongoServerError') return res.status(400).send({ "message": "Неправильные почта или пароль" }); // выдаёт ошидку при совпадении email
       res.status(500).send({ message: 'Ошибка сервера' });
     });
 
@@ -94,5 +97,17 @@ updateAvatar = (req, res) => {
       }
     });
 };
+
+// проверка почты и пароля
+login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id}, 'some-secret-key', { expiresIn: '7d'});
+      res.send({ token }); //  JWT в httpOnly куку
+    })
+    .catch((err) => res.status(401).send({ message: err.message}));
+}
 
 module.exports = { getUsers, getUserId, createUser, updateUser, updateAvatar };
