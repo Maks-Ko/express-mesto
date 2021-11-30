@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const users = require('./routes/users');
 const cards = require('./routes/cards');
+const { createUser, login } = require('./controllers/users')
+const auth = require('./middlewares/auth');
+
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -14,13 +17,18 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6192a08a1514607d2fb7f040'
-  };
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '6192a08a1514607d2fb7f040'
+//   };
 
-  next();
-});
+//   next();
+// });
+
+app.post('/signup', createUser);
+app.post('/signin', login);
+
+app.use(auth);
 
 app.use('/', users);
 app.use('/', cards);

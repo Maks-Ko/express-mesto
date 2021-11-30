@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { findOne } = require('../models/user');
 
 // создаёт пользователя
 createUser = (req, res) => {
@@ -8,13 +9,7 @@ createUser = (req, res) => {
 
   // хешируем пароль
   bcrypt.hash(password, 10)
-    .then(hash => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
-    }))
+    .then(hash => User.create({ name, about, avatar, email, password: hash, }))
     .then((user) => res.status(201).send({ date: user }))
     .catch((err) => {
       console.log(err.name);
@@ -22,14 +17,26 @@ createUser = (req, res) => {
       // if (err.name === 'MongoServerError') return res.status(400).send({ "message": "Неправильные почта или пароль" }); // выдаёт ошидку при совпадении email
       res.status(500).send({ message: 'Ошибка сервера' });
     });
-
-  // User.create({ name, about, avatar })
-  //   .then(user => res.send({ data: user }))
-  //   .catch((err) => {
-  //     if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
-  //     res.status(500).send({ message: 'Ошибка сервера' });
-  //   });
 };
+
+// проверка почты и пароля
+login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id}, 'some-secret-key', { expiresIn: '7d'});
+      res.send({ token }); //  JWT в httpOnly куку
+    })
+    .catch((err) => res.status(401).send({ message: err.message}));
+}
+
+// возвращает текущего пользователя
+getCurrentUser =(req, res) => {
+  User.findById(req.user._id)
+    .then(user => res.send({ data: user }))
+    .catch((err) => res.status(500).send({ message: 'Ошибка сервера' }));
+}
 
 // возвращает пользователя по _id
 getUserId = (req, res) => {
@@ -98,16 +105,4 @@ updateAvatar = (req, res) => {
     });
 };
 
-// проверка почты и пароля
-login = (req, res) => {
-  const { email, password } = req.body;
-
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id}, 'some-secret-key', { expiresIn: '7d'});
-      res.send({ token }); //  JWT в httpOnly куку
-    })
-    .catch((err) => res.status(401).send({ message: err.message}));
-}
-
-module.exports = { getUsers, getUserId, createUser, updateUser, updateAvatar };
+module.exports = { getUsers, getUserId, createUser, updateUser, updateAvatar, login, getCurrentUser };
