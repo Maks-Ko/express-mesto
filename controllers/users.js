@@ -1,68 +1,56 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { findOne } = require('../models/user');
+// const { findOne } = require('../models/user');
 
 // создаёт пользователя
-createUser = (req, res) => {
+createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
 
   // хешируем пароль
   bcrypt.hash(password, 10)
-    .then(hash => User.create({ name, about, avatar, email, password: hash, }))
+    .then(hash => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.status(201).send({ date: user }))
-    .catch((err) => {
-      console.log(err.name);
-      if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
-      // if (err.name === 'MongoServerError') return res.status(400).send({ "message": "Неправильные почта или пароль" }); // выдаёт ошидку при совпадении email
-      res.status(500).send({ message: 'Ошибка сервера' });
-    });
+    .catch(next);
 };
 
 // проверка почты и пароля
-login = (req, res) => {
+login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id}, 'some-secret-key', { expiresIn: '7d'});
-      res.send({ token }); //  JWT в httpOnly куку
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.send({ token });  // JWT в httpOnly куку
     })
-    .catch((err) => res.status(401).send({ message: err.message}));
+    .catch(next);
 }
 
 // возвращает текущего пользователя
-getCurrentUser =(req, res) => {
+getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
+    .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: 'Ошибка сервера' }));
+    .catch(next);
 }
 
 // возвращает пользователя по _id
-getUserId = (req, res) => {
+getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ "message": "Переданы некорректные данные" });
-      } else if (err.name === 'ReferenceError') {
-        res.status(404).send({ message: 'Объект не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
 // возвращает всех пользователей
-getUsers = (req, res) => {
+getUsers = (req, res, next) => {
   User.find({})
     .then(user => res.send({ data: user }))
-    .catch(err => res.status(500).send({ message: 'Ошибка сервера' }));
+    .catch(next);
 };
 
 // обновляет профиль
-updateUser = (req, res) => {
+updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   if (!name || !about) {
@@ -72,19 +60,11 @@ updateUser = (req, res) => {
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ "message": "Переданы некорректные данные" });
-      } else if (err.name === 'ReferenceError') {
-        res.status(404).send({ message: 'Объект не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
 // обновляет аватар
-updateAvatar = (req, res) => {
+updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   if (!avatar) {
@@ -94,15 +74,7 @@ updateAvatar = (req, res) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ "message": "Переданы некорректные данные" });
-      } else if (err.name === 'ReferenceError') {
-        res.status(404).send({ message: 'Объект не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
-      }
-    });
+    .catch(next);
 };
 
 module.exports = { getUsers, getUserId, createUser, updateUser, updateAvatar, login, getCurrentUser };

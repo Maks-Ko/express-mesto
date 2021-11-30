@@ -17,14 +17,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '6192a08a1514607d2fb7f040'
-//   };
-
-//   next();
-// });
-
 app.post('/signup', createUser);
 app.post('/signin', login);
 
@@ -32,6 +24,20 @@ app.use(auth);
 
 app.use('/', users);
 app.use('/', cards);
+
+app.use((err, req, res, next) => {
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
+    res.status(400).send({ "message": "Переданы некорректные данные" });
+  } else if (err.name === 'Error') {
+    res.status(401).send({ "message": err.message });
+  } else if (err.name === 'ReferenceError') {
+      res.status(404).send({ message: 'Объект не найден' });
+  } else if (err.name === 'MongoServerError' && err.code === 11000) {
+    res.status(409).send({ "message": "Пользователь с таким email уже существует" });
+  } else {
+    res.status(500).send({ message: 'Ошибка сервера' });
+  }
+})
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
