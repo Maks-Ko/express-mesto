@@ -1,14 +1,31 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 
 // создаёт пользователя
 createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then(user => res.send({ data: user }))
+  const { name, about, avatar, email, password } = req.body;
+
+  // хешируем пароль
+  bcrypt.hash(password, 10)
+    .then(hash => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.status(201).send({ date: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
       res.status(500).send({ message: 'Ошибка сервера' });
     });
+
+  // User.create({ name, about, avatar })
+  //   .then(user => res.send({ data: user }))
+  //   .catch((err) => {
+  //     if (err.name === 'ValidationError') return res.status(400).send({ "message": "Переданы некорректные данные" });
+  //     res.status(500).send({ message: 'Ошибка сервера' });
+  //   });
 };
 
 // возвращает пользователя по _id
