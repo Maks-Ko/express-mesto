@@ -1,16 +1,23 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-// const { findOne } = require('../models/user');
 
 // создаёт пользователя
 createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
 
-  // хешируем пароль
-  bcrypt.hash(password, 10)
-    .then(hash => User.create({ name, about, avatar, email, password: hash }))
-    .then((user) => res.status(201).send({ date: user }))
+  User.findOne({ email: email })
+    .then((user) => {
+      if (user) {
+        return res.status(409).send({ "message": "Пользователь с таким email уже существует" });
+      }
+
+      // хешируем пароль
+      bcrypt.hash(password, 10)
+      .then(hash => User.create({ name, about, avatar, email, password: hash }))
+      .then((user) => res.status(201).send({ date: user }))
+      .catch(next);
+    })
     .catch(next);
 };
 
@@ -52,10 +59,6 @@ getUsers = (req, res, next) => {
 // обновляет профиль
 updateUser = (req, res, next) => {
   const { name, about } = req.body;
-
-  if (!name || !about) {
-    return res.status(400).send({ "message": "Переданы некорректные данные при обновлении профиля" });
-  };
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))

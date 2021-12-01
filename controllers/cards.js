@@ -17,9 +17,18 @@ getCards = (req, res, next) => {
 
 // удаляет карточку по id
 deleteCardId = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+
+  Card.findById(req.params.cardId)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(card => res.send({ data: card }))
+    .then((card) => {
+      if (!(card.owner === req.user._id)) {
+        return res.status(403).send({ "message": "Запрещено, нет прав" });
+      } else {
+        Card.findByIdAndRemove(req.params.cardId)
+        .then(card => res.send({ data: card }))
+        .catch(next)
+      }
+    })
     .catch(next);
 };
 
