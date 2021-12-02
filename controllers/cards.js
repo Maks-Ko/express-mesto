@@ -1,11 +1,17 @@
 const Card = require('../models/card');
+const { ValidationError, ForbiddenError, NotFoundError } = require('./../errors/custom-errors');
 
 // создаёт карточку
 createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then(card => res.send({ data: card }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      }
+      next(err);
+    });
 };
 
 // возвращает все карточки
@@ -17,16 +23,23 @@ getCards = (req, res, next) => {
 
 // удаляет карточку по id
 deleteCardId = (req, res, next) => {
-
   Card.findById(req.params.cardId)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then((card) => {
       if (!(card.owner === req.user._id)) {
-        return res.status(403).send({ "message": "Запрещено, нет прав" });
+        throw new ForbiddenError('Запрещено, нет прав');
       } else {
         Card.findByIdAndRemove(req.params.cardId)
-        .then(card => res.send({ data: card }))
-        .catch(next)
+          .then(card => res.send({ data: card }))
+          .catch((err) => {
+            if (err.name === 'ReferenceError') {
+              next(new NotFoundError('Объект не найден'));
+            }
+            if (err.name === 'CastError') {
+              next(new ValidationError('Переданы некорректные данные'));
+            }
+            next(err);
+          });
       }
     })
     .catch(next);
@@ -41,7 +54,15 @@ likesCard = (req, res, next) => {
   )
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(card => res.send({ data: card }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ReferenceError') {
+        next(new NotFoundError('Объект не найден'));
+      }
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      }
+      next(err);
+    });
 };
 
 // удалить лайк карточки
@@ -53,7 +74,15 @@ dislikesCard = (req, res, next) => {
   )
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(card => res.send({ data: card }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ReferenceError') {
+        next(new NotFoundError('Объект не найден'));
+      }
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      }
+      next(err);
+    });
 };
 
 module.exports = { createCard, getCards, deleteCardId, likesCard, dislikesCard };

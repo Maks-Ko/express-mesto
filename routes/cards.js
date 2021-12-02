@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const { createCard, getCards, deleteCardId, likesCard, dislikesCard } = require('../controllers/cards');
 const { celebrate, Joi } = require('celebrate');
+const { createCard, getCards, deleteCardId, likesCard, dislikesCard } = require('../controllers/cards');
 
 router.post('/cards', celebrate({
   body: Joi.object().keys({
