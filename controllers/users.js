@@ -15,7 +15,15 @@ createUser = (req, res, next) => {
       // хешируем пароль
       bcrypt.hash(password, 10)
       .then(hash => User.create({ name, about, avatar, email, password: hash }))
-      .then((user) => res.status(201).send({ date: user }))
+      .then((user) => {
+        const dataUser = Object.assign({},
+          { name: user.name },
+          { about: user.about },
+          { avatar: user.avatar },
+          { email: user.email },
+          { _id: user._id });
+        res.status(201).send({ date: dataUser })
+      })
       .catch(next);
     })
     .catch(next);
