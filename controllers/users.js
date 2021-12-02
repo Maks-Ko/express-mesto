@@ -41,21 +41,13 @@ login = (req, res, next) => {
     .catch(next);
 }
 
-// возвращает текущего пользователя
-getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+// возвращает текущего пользователя или пользователя по id
+getUser = (req, res, next) => {
+  User.findById(req.params.userId || req.user._id)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then(user => res.send({ data: user }))
     .catch(next);
 }
-
-// возвращает пользователя по _id
-getUserId = (req, res, next) => {
-  User.findById(req.params.userId)
-    .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(user => res.send({ data: user }))
-    .catch(next);
-};
 
 // возвращает всех пользователей
 getUsers = (req, res, next) => {
@@ -88,4 +80,4 @@ updateAvatar = (req, res, next) => {
     .catch(next);
 };
 
-module.exports = { getUsers, getUserId, createUser, updateUser, updateAvatar, login, getCurrentUser };
+module.exports = { getUsers, createUser, updateUser, updateAvatar, login, getUser };

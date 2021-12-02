@@ -40,7 +40,7 @@ app.use('/', users);
 app.use('/', cards);
 
 app.use('*', (req, res) => {
-  res.status(404).send({ "message": "Не найден" });
+  res.status(404).send({ 'message': 'Объект не найден' });
 });
 
 app.use(errors());
@@ -48,13 +48,13 @@ app.use(errors());
 app.use((err, req, res, next) => {
 
   if (err.name === 'ValidationError' || err.name === 'CastError') {
-    res.status(400).send({ "message": "Переданы некорректные данные" });
+    res.status(400).send({ 'message': 'Переданы некорректные данные' });
   } else if (err.name === 'Error') {
-    res.status(401).send({ "message": err.message });
+    res.status(401).send({ 'message': err.message });
   } else if (err.name === 'ReferenceError') {
     res.status(404).send({ message: 'Объект не найден' });
   } else if (err.name === 'MongoServerError' && err.code === 11000) {
-    res.status(409).send({ "message": "Пользователь с таким email уже существует" });
+    res.status(409).send({ 'message': 'Пользователь с таким email уже существует' });
   } else {
     res.status(500).send({ message: 'Ошибка сервера' });
   }
