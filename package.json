@@ -4,7 +4,7 @@
   "description": "server for the mesto website",
   "main": "index.js",
   "scripts": {
-    "npx eslint": "npx eslint",
+    "lint": "npx eslint",
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
