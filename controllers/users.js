@@ -1,7 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { ValidationError, UnauthorizedError, ConflictError, NotFoundError } = require('./../errors/custom-errors');
+const ValidationError = require('../errors/validation-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict-error');
+const NotFoundError = require('../errors/notFound-error');
 
 // создаёт пользователя
 createUser = (req, res, next) => {
@@ -17,13 +20,7 @@ createUser = (req, res, next) => {
       bcrypt.hash(password, 10)
         .then(hash => User.create({ name, about, avatar, email, password: hash }))
         .then((user) => {
-          const dataUser = Object.assign({},
-            { name: user.name },
-            { about: user.about },
-            { avatar: user.avatar },
-            { email: user.email },
-            { _id: user._id });
-          res.status(201).send({ date: dataUser });
+          res.status(201).send(Object.assign(user, { password: undefined }));
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
@@ -50,7 +47,7 @@ login = (req, res, next) => {
       }
       next(err);
     });
-}
+};
 
 // возвращает текущего пользователя или пользователя по id
 getUser = (req, res, next) => {
@@ -66,7 +63,7 @@ getUser = (req, res, next) => {
       }
       next(err);
     });
-}
+};
 
 // возвращает всех пользователей
 getUsers = (req, res, next) => {

@@ -1,5 +1,7 @@
 const Card = require('../models/card');
-const { ValidationError, ForbiddenError, NotFoundError } = require('./../errors/custom-errors');
+const ValidationError = require('../errors/validation-error');
+const ForbiddenError = require('../errors/forbidden-error');
+const NotFoundError = require('../errors/notFound-error');
 
 // создаёт карточку
 createCard = (req, res, next) => {
