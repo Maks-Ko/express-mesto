@@ -4,10 +4,10 @@ const ForbiddenError = require('../errors/forbidden-error');
 const NotFoundError = require('../errors/notFound-error');
 
 // создаёт карточку
-createCard = (req, res, next) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
-    .then(card => res.send({ data: card }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные'));
@@ -17,14 +17,14 @@ createCard = (req, res, next) => {
 };
 
 // возвращает все карточки
-getCards = (req, res, next) => {
+const getCards = (req, res, next) => {
   Card.find({})
-    .then(card => res.send({ data: card }))
+    .then((card) => res.send({ data: card }))
     .catch(next);
 };
 
 // удаляет карточку по id
-deleteCardId = (req, res, next) => {
+const deleteCardId = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
     .then((card) => {
@@ -32,7 +32,7 @@ deleteCardId = (req, res, next) => {
         throw new ForbiddenError('Запрещено, нет прав');
       } else {
         Card.findByIdAndRemove(req.params.cardId)
-          .then(card => res.send({ data: card }))
+          .then((cardDelete) => res.send({ data: cardDelete }))
           .catch((err) => {
             if (err.name === 'ReferenceError') {
               next(new NotFoundError('Объект не найден'));
@@ -48,14 +48,14 @@ deleteCardId = (req, res, next) => {
 };
 
 // поставить лайк карточке
-likesCard = (req, res, next) => {
+const likesCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true }
+    { new: true },
   )
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(card => res.send({ data: card }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
         next(new NotFoundError('Объект не найден'));
@@ -68,14 +68,14 @@ likesCard = (req, res, next) => {
 };
 
 // удалить лайк карточки
-dislikesCard = (req, res, next) => {
+const dislikesCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(card => res.send({ data: card }))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
         next(new NotFoundError('Объект не найден'));
@@ -87,4 +87,6 @@ dislikesCard = (req, res, next) => {
     });
 };
 
-module.exports = { createCard, getCards, deleteCardId, likesCard, dislikesCard };
+module.exports = {
+  createCard, getCards, deleteCardId, likesCard, dislikesCard,
+};

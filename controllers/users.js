@@ -7,10 +7,12 @@ const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/notFound-error');
 
 // создаёт пользователя
-createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body;
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.findOne({ email: email })
+  User.findOne({ email })
     .then((user) => {
       if (user) {
         throw new ConflictError('Пользователь с таким email уже существует');
@@ -18,9 +20,11 @@ createUser = (req, res, next) => {
 
       // хешируем пароль
       bcrypt.hash(password, 10)
-        .then(hash => User.create({ name, about, avatar, email, password: hash }))
-        .then((user) => {
-          res.status(201).send(Object.assign(user, { password: undefined }));
+        .then((hash) => User.create({
+          name, about, avatar, email, password: hash,
+        }))
+        .then((userData) => {
+          res.status(201).send(Object.assign(userData, { password: undefined }));
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
@@ -33,13 +37,13 @@ createUser = (req, res, next) => {
 };
 
 // проверка почты и пароля
-login = (req, res, next) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.send({ token });  // JWT в httpOnly куку
+      res.send({ token }); // JWT в httpOnly куку
     })
     .catch((err) => {
       if (err.name === 'Error') {
@@ -50,10 +54,10 @@ login = (req, res, next) => {
 };
 
 // возвращает текущего пользователя или пользователя по id
-getUser = (req, res, next) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId || req.user._id)
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
         next(new NotFoundError('Объект не найден'));
@@ -66,19 +70,19 @@ getUser = (req, res, next) => {
 };
 
 // возвращает всех пользователей
-getUsers = (req, res, next) => {
+const getUsers = (req, res, next) => {
   User.find({})
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch(next);
 };
 
 // обновляет профиль
-updateUser = (req, res, next) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
         next(new NotFoundError('Объект не найден'));
@@ -91,12 +95,12 @@ updateUser = (req, res, next) => {
 };
 
 // обновляет аватар
-updateAvatar = (req, res, next) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .orFail(() => new PropertyError('NotFound', 'Объект не найден'))
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
         next(new NotFoundError('Объект не найден'));
@@ -108,4 +112,6 @@ updateAvatar = (req, res, next) => {
     });
 };
 
-module.exports = { getUsers, createUser, updateUser, updateAvatar, login, getUser };
+module.exports = {
+  getUsers, createUser, updateUser, updateAvatar, login, getUser,
+};
