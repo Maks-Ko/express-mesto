@@ -7,6 +7,7 @@ const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const notFoundRoutes = require('./middlewares/not-found-routes');
 const { validationCreateUser, validationLogin } = require('./middlewares/validation-joi');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -19,6 +20,9 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// логер запросов
+app.use(requestLogger);
+
 app.post('/signup', validationCreateUser, createUser);
 app.post('/signin', validationLogin, login);
 
@@ -28,6 +32,9 @@ app.use('/', users);
 app.use('/', cards);
 
 app.use('*', notFoundRoutes);
+
+// логер ошибок
+app.use(errorLogger);
 
 app.use(errors());
 
